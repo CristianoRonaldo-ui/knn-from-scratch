@@ -1,5 +1,6 @@
 """A k-Nearest Neighbors classifier written from scratch."""
 
+from collections import Counter
 from distance import euclidean_distance
 
 
@@ -21,3 +22,22 @@ class KNNClassifier:
             raise ValueError("Need at least k training samples.")
         self.X_train = X_train
         self.y_train = y_train
+
+    def predict_one(self, point: list[float]) -> str:
+        if not self.X_train:
+            raise ValueError("Model has not been fitted yet. Call fit() first.")
+
+        distances = []
+        for train_point, label in zip(self.X_train, self.y_train):
+            distance = euclidean_distance(point, train_point)
+            distances.append((distance, label))
+
+        distances.sort(key=lambda pair: pair[0])
+        nearest_labels = [label for _, label in distances[: self.k]]
+
+        votes = Counter(nearest_labels)
+        return votes.most_common(1)[0][0]
+
+    def predict(self, points: list[list[float]]) -> list[str]:
+        """Predict labels for a list of points."""
+        return [self.predict_one(point) for point in points]
